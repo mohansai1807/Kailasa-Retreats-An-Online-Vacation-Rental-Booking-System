@@ -1,0 +1,71 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container auth-container">
+    <div class="auth-card shadow-lg">
+
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Your Next Premium Retreat Awaits</p>
+        </div>
+
+        <div class="auth-body">
+            <form action="/signup" method="POST" class="needs-validation" novalidate>
+
+                <div class="mb-4">
+                    <label class="form-label">Username</label>
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Choose a username"
+                        required
+                    >
+                    <div class="invalid-feedback">
+                        Please choose a username.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Email Address</label>
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="Enter your email"
+                        required
+                    >
+                    <div class="invalid-feedback">
+                        Please enter a valid email address.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Create a secure password"
+                        required
+                    >
+                    <div class="invalid-feedback">
+                        Please choose a secure password.
+                    </div>
+                </div>
+
+                <button class="btn btn-primary-custom w-100 py-2.5 rounded-pill mb-3">
+                    <i class="fa-solid fa-user-plus me-1"></i> Sign Up
+                </button>
+
+                <div class="text-center mt-3">
+                    <p class="mb-0 text-muted">
+                        Already have an account?
+                        <a href="/login" class="auth-footer-link ms-1">Log In</a>
+                    </p>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,176 @@
+<% layout('/layouts/boilerplate') %>
+<style>
+  /* ===== Airbnb-style Booking Form ===== */
+
+/* Card container */
+.booking-card {
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 6px 16px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
+}
+
+.booking-card h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222222;
+  margin-bottom: 6px;
+}
+
+.booking-card .text-muted {
+  color: #717171;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.booking-card .text-primary {
+  color: #FF385C;
+}
+
+/* Form labels */
+.booking-form .form-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #222222;
+  margin-bottom: 6px;
+}
+
+/* Date & number inputs */
+.booking-form .form-control {
+  border: 1px solid #b0b0b0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #222222;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  height: auto;
+}
+
+.booking-form .form-control:hover {
+  border-color: #222222;
+}
+
+.booking-form .form-control:focus {
+  border-color: #222222;
+  box-shadow: 0 0 0 2px #222222;
+  outline: none;
+}
+
+/* Guest field — slightly wider touch target */
+.booking-form input[type="number"].form-control {
+  -moz-appearance: textfield;
+}
+.booking-form input[type="number"].form-control::-webkit-inner-spin-button,
+.booking-form input[type="number"].form-control::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Confirm button */
+.btn-primary-custom {
+  background-color: #FF385C;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 24px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  line-height: 1;
+}
+
+.btn-primary-custom:hover {
+  background-color: #E31C5F;
+}
+
+.btn-primary-custom:active {
+  background-color: #C41350;
+  transform: scale(0.98);
+}
+
+/* Cancel link */
+.btn-outline-custom {
+  background-color: transparent;
+  border: 1.5px solid #222222;
+  border-radius: 8px;
+  color: #222222;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 20px;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1;
+  transition: background-color 0.15s ease;
+}
+
+.btn-outline-custom:hover {
+  background-color: #f7f7f7;
+  color: #222222;
+  text-decoration: none;
+}
+
+/* Divider between field groups and actions */
+.booking-form .row {
+  row-gap: 16px;
+}
+
+/* Column with buttons — right-aligned on md+ */
+@media (min-width: 768px) {
+  .booking-form .d-flex.align-items-end {
+    padding-top: 8px;
+  }
+}
+
+/* Mobile: stack buttons full width */
+@media (max-width: 575px) {
+  .booking-card {
+    padding: 24px 18px;
+    border-radius: 0;
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .btn-primary-custom,
+  .btn-outline-custom {
+    width: 100%;
+    text-align: center;
+  }
+
+  .booking-form .d-flex.gap-2 {
+    flex-direction: column-reverse;
+  }
+}
+</style>
+<div class="container py-4">
+  <div class="inquiry-card booking-card mx-auto" style="max-width:720px;">
+    <h3 class="mb-3">Reserve <span class="text-primary"><%= listing.title %></span></h3>
+    <p class="text-muted">Please select check-in and check-out dates and number of guests.</p>
+
+    <form action="/listings/<%= listing._id %>/bookings" method="POST" class="row g-3 booking-form needs-validation">
+      <div class="col-md-6">
+        <label for="checkIn" class="form-label">Check-in</label>
+        <input type="date" id="checkIn" name="booking[checkIn]" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label for="checkOut" class="form-label">Check-out</label>
+        <input type="date" id="checkOut" name="booking[checkOut]" class="form-control" required>
+      </div>
+
+      <div class="col-md-4">
+        <label for="guests" class="form-label">Guests</label>
+        <input type="number" id="guests" name="booking[guests]" class="form-control" value="1" min="1" required>
+      </div>
+
+      <div class="col-md-8 d-flex align-items-end justify-content-end gap-2">
+        <a href="/listings/<%= listing._id %>" class="btn btn-outline-custom">Cancel</a>
+        <button type="submit" class="btn btn-primary-custom">Confirm Reservation</button>
+      </div>
+    </form>
+  </div>
+</div>

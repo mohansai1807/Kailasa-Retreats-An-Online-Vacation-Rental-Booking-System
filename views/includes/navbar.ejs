@@ -1,0 +1,46 @@
+<nav class="navbar navbar-expand-lg sticky-top navbar-custom border-bottom">
+    <div class="container-fluid px-4 px-md-5">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="/images/kailasa-logo.png" alt="Kailasa Logo" class="navbar-logo">
+        </a>
+
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav mr-auto">
+                <a class="nav-link py-2 px-3" href="/"><i class="fa-solid fa-house me-1"></i> Home</a>
+                <a class="nav-link py-2 px-3" href="/listings"><i class="fa-solid fa-compass me-1"></i> All Listings</a>
+                <% if (currUser && currUser.username === 'mohanasai') { %>
+                    <a class="nav-link py-2 px-3" href="/listings/new"><i class="fa-solid fa-circle-plus me-1"></i> Add Retreat</a>
+                   
+                <% } %>
+            </div>
+
+                <div class="navbar-nav ms-auto align-items-center gap-2">
+                <% if(!currUser){ %>
+                    <a class="nav-link btn-auth-signup px-3 py-1.5" href="/signup">Sign Up</a>
+                    <a class="nav-link btn-auth-login px-3 py-1.5" href="/login">Log In</a>
+                    <% } else { %>
+                        <% if (currUser.username !== 'mohanasai') { %>
+                            <a class="nav-link py-2 px-3" href="/bookings"><i class="fa-solid fa-calendar-days me-1"></i> My Bookings</a>
+                        <% } %>
+                        <div class="profile-box d-flex align-items-center gap-2 px-3 py-2">
+                            <div class="profile-avatar d-flex align-items-center justify-content-center">
+                                <%= currUser.username.charAt(0).toUpperCase() %>
+                            </div>
+                            <span class="profile-name">
+                                <%= currUser.username %>
+                            </span>
+                        </div>
+                        <a class="nav-link logout-btn px-3 py-2" href="/logout">
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                        </a>
+                        <% } %>
+            </div>
+        </div>
+    </div>
+</nav>

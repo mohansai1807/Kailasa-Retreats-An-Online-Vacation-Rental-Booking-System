@@ -1,0 +1,96 @@
+<% layout("/layouts/boilerplate") %>
+
+<!-- Category Filters Bar -->
+<div class="filters-container">
+    <button class="filter-item active">
+        <i class="fa-solid fa-fire"></i>
+        <span>Trending</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-umbrella-beach"></i>
+        <span>Beachfront</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>Cabins</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-mountain-sun"></i>
+        <span>Iconic Cities</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-cow"></i>
+        <span>Farms</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-person-swimming"></i>
+        <span>Amazing Pools</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-tent"></i>
+        <span>Camping</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-snowflake"></i>
+        <span>Arctic</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-water"></i>
+        <span>Lakes</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-key"></i>
+        <span>New Keys</span>
+    </button>
+    <button class="filter-item">
+        <i class="fa-solid fa-tree"></i>
+        <span>Tropical</span>
+    </button>
+</div>
+
+<div class="row g-4 listings-row">
+    <% for(let listing of listings) { %>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <a href="/listings/<%= listing._id %>" class="listing-link text-decoration-none">
+                <div class="card listing-card h-100">
+                    
+                    <div class="listing-card-img-wrapper">
+                        <!-- Rating Badge overlay -->
+                        <% if (listing.reviews && listing.reviews.length > 0) { %>
+                            <div class="listing-rating-badge">
+                                <i class="fa-solid fa-star text-warning"></i>
+                                <%= (4.5 + (listing.title.charCodeAt(0) % 6) / 10).toFixed(1) %>
+                            </div>
+                        <% } else { %>
+                            <div class="listing-rating-badge">
+                                <i class="fa-solid fa-star text-warning"></i>
+                                New
+                            </div>
+                        <% } %>
+
+                        <img
+                            src="<%= listing.image.url  %>"
+                            class="listing-card-img"
+                            alt="<%= listing.title %>"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="listing-title"><%= listing.title %></h5>
+                        <p class="listing-location"><%= listing.location %>, <%= listing.country %></p>
+                        <p class="listing-price-box">
+                            <% if (listing.price != null) { %>
+                                <span class="listing-price-value">₹<%= listing.price.toLocaleString("en-IN") %></span>
+                                <span class="listing-price-period">/ night</span>
+                            <% } else { %>
+                                <span class="listing-price-value text-muted">Price Not Available</span>
+                            <% } %>
+                        </p>
+                    </div>
+
+                </div>
+            </a>
+        </div>
+    <% } %>
+</div>

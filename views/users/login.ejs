@@ -1,0 +1,57 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container auth-container">
+    <div class="auth-card shadow-lg">
+
+        <div class="auth-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to continue your journey with Kailasa</p>
+        </div>
+
+        <div class="auth-body">
+            <form action="/login" method="POST" class="needs-validation" novalidate>
+
+                <div class="mb-4">
+                    <label class="form-label">Username</label>
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Enter your username"
+                        required
+                    >
+                    <div class="invalid-feedback">
+                        Please enter your username.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <div class="invalid-feedback">
+                        Please enter your password.
+                    </div>
+                </div>
+
+                <button class="btn btn-primary-custom w-100 py-2.5 rounded-pill mb-3">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i> Log In
+                </button>
+
+                <div class="text-center mt-3">
+                    <p class="mb-0 text-muted">
+                        Don't have an account?
+                        <a href="/signup" class="auth-footer-link ms-1">Sign Up</a>
+                    </p>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>

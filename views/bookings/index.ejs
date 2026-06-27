@@ -1,0 +1,189 @@
+<% layout('/layouts/boilerplate') %>
+
+<style>
+.booking-heading{
+    font-size:2.4rem;
+    font-weight:700;
+    color:#222;
+}
+
+.booking-alert{
+    background:#eef6ff;
+    border:none;
+    border-radius:18px;
+    padding:35px;
+    text-align:center;
+}
+
+.booking-alert h4{
+    font-weight:700;
+    color:#0d6efd;
+}
+
+.booking-alert p{
+    margin-top:10px;
+    color:#666;
+}
+
+.booking-card{
+    border:none;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
+    background:#fff;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    transition:.35s;
+}
+
+.booking-card::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:7px;
+    height:100%;
+    background:linear-gradient(#ff385c,#ff7a59);
+}
+
+.booking-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 45px rgba(0,0,0,.15);
+}
+
+.booking-card .card-body{
+    padding:28px;
+}
+
+.listing-title{
+    font-size:1.4rem;
+    font-weight:700;
+    color:#222;
+    margin-bottom:18px;
+}
+
+.booking-info{
+    font-size:1rem;
+    color:#555;
+    margin-bottom:10px;
+}
+
+.booking-info strong{
+    color:#ff385c;
+}
+
+.booking-date{
+    color:#888;
+    font-size:.85rem;
+    line-height:1.6;
+}
+
+.badge{
+    font-size:.8rem;
+    padding:8px 14px;
+    border-radius:30px;
+}
+
+@media(max-width:768px){
+
+    .booking-heading{
+        font-size:2rem;
+    }
+
+    .booking-card .d-flex{
+        flex-direction:column;
+    }
+
+    .text-end{
+        text-align:left !important;
+        margin-top:18px;
+    }
+
+    .listing-title{
+        font-size:1.2rem;
+    }
+}
+</style>
+
+<div class="container py-5">
+
+    <h2 class="booking-heading text-center mb-5">Your Bookings</h2>
+
+    <% if (!bookings || bookings.length === 0) { %>
+
+        <div class="alert booking-alert">
+            <h4>No Bookings Yet </h4>
+            <p>Looks like you haven't booked any stays yet.</p>
+        </div>
+
+    <% } else { %>
+
+        <div class="row g-4">
+
+            <% bookings.forEach(b => { %>
+
+                <div class="col-lg-6">
+
+                    <div class="card booking-card">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+
+                                    <span class="badge bg-success mb-2">
+                                        ✔ Confirmed
+                                    </span>
+
+                                    <h4 class="listing-title">
+                                        <%= b.listing ? b.listing.title : "Listing Removed" %>
+                                    </h4>
+
+                                    <p class="booking-info">
+                                        📅
+                                        <strong><%= new Date(b.checkIn).toLocaleDateString() %></strong>
+                                        →
+                                        <strong><%= new Date(b.checkOut).toLocaleDateString() %></strong>
+                                    </p>
+
+                                    <p class="booking-info">
+                                        👥 Guests :
+                                        <strong><%= b.guests %></strong>
+                                    </p>
+
+                                    <% if (b.user && b.user.username) { %>
+
+                                        <p class="booking-info">
+                                            👤 Booked by
+                                            <strong><%= b.user.username %></strong>
+                                        </p>
+
+                                    <% } %>
+
+                                </div>
+
+                                <div class="text-end">
+
+                                    <small class="booking-date">
+                                        Booked On
+                                        <br>
+                                        <%= new Date(b.createdAt).toLocaleDateString() %>
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            <% }) %>
+
+        </div>
+
+    <% } %>
+
+</div>
