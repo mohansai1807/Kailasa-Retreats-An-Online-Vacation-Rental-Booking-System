@@ -8,8 +8,7 @@ const mongoose = require("mongoose");
 const initdata = require("./data.js");
 const Listing = require("../models/listing.js");
 
-console.log("ATLAS_URI =", process.env.ATLAS_URI);
-console.log("Loaded ENV =", process.env.ATLAS_URI ? "YES" : "NO");
+
 
 async function main() {
   await mongoose.connect(process.env.ATLAS_URI);
