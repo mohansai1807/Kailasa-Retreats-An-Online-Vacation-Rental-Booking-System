@@ -35,9 +35,11 @@ module.exports.signup = async (req, res) => {
         regUser.otpExpiry = otpExpiry;
         await regUser.save();
 
-        // Store email in session for the verify page
+        // Store email and pending user ID in session for the verify page
         req.session.otpEmail = email;
         req.session.otpUsername = username;
+        req.session.pendingUserId = regUser._id;
+        await new Promise(resolve => req.session.save(resolve));
 
         // Send OTP email (non-blocking: failure won't crash signup)
         try {
@@ -56,18 +58,42 @@ module.exports.signup = async (req, res) => {
 
 // ─── OTP Verification ────────────────────────────────────────────────────────
 
-module.exports.renderVerifyOtp = (req, res) => {
-    const email = req.session.otpEmail;
+module.exports.renderVerifyOtp = async (req, res, next) => {
+    let email = req.session.otpEmail;
+    if (!email && req.session.pendingUserId) {
+        try {
+            const pendingUser = await User.findById(req.session.pendingUserId);
+            if (pendingUser) {
+                email = pendingUser.email;
+                req.session.otpEmail = email;
+                req.session.otpUsername = pendingUser.username;
+                await new Promise(resolve => req.session.save(resolve));
+            }
+        } catch (err) {
+            return next(err);
+        }
+    }
     if (!email) {
         req.flash('error', 'Session expired. Please sign up again.');
         return res.redirect('/signup');
     }
-    res.render('users/verify-otp.ejs', { maskedEmail: maskEmail(email) });
+    res.render('users/verify-otp.ejs', { maskedEmail: maskEmail(email), pendingUserId: req.session.pendingUserId });
 };
 
-module.exports.verifyOtp = async (req, res) => {
+module.exports.verifyOtp = async (req, res, next) => {
     try {
-        const email = req.session.otpEmail;
+        let email = req.session.otpEmail || req.body.otpEmail;
+        const pendingUserId = req.body.pendingUserId || req.session.pendingUserId;
+        if (!email && pendingUserId) {
+            const pendingUser = await User.findById(pendingUserId);
+            if (pendingUser) {
+                email = pendingUser.email;
+                req.session.otpEmail = email;
+                req.session.otpUsername = pendingUser.username;
+                req.session.pendingUserId = pendingUserId;
+                await new Promise(resolve => req.session.save(resolve));
+            }
+        }
         if (!email) {
             req.flash('error', 'Session expired. Please sign up again.');
             return res.redirect('/signup');
@@ -112,10 +138,13 @@ module.exports.verifyOtp = async (req, res) => {
         // Auto-login the user
         req.login(user, (err) => {
             if (err) return next(err);
+            const redirectUrl = req.session.redirectUrl || '/listings';
             req.session.otpEmail = null;
             req.session.otpUsername = null;
+            req.session.pendingUserId = null;
+            req.session.redirectUrl = null;
             req.flash('success', `Welcome to Kailasa Retreats, ${user.username}! Your email is verified.`);
-            res.redirect('/listings');
+            res.redirect(redirectUrl);
         });
     } catch (err) {
         req.flash('error', err.message);
@@ -167,20 +196,41 @@ module.exports.renderLoginForm = (req, res) => {
     res.render('users/login.ejs');
 };
 
-module.exports.login = async (req, res) => {
-    // Block unverified users
-    if (!req.user.isVerified) {
-        req.session.otpEmail = req.user.email;
-        req.session.otpUsername = req.user.username;
-        req.logout((err) => { if (err) console.error(err); });
-        req.flash('error', 'Please verify your email first. Check your inbox for the OTP.');
-        return res.redirect('/verify-otp');
-    }
+module.exports.login = async (req, res, next) => {
+    try {
+        const user = req.user;
 
-    req.flash('success', 'Welcome to Kailasa Retreats! You are successfully logged in');
-    const redirectUrl = res.locals.redirectUrl || '/listings';
-    req.session.redirectUrl = null;
-    res.redirect(redirectUrl);
+        // Generate a fresh OTP for login and save it to the user record
+        const otp = generateOtp();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+        user.otp = hashedOtp;
+        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+        await user.save();
+
+        // Store email, pending user ID and redirect destination in session for the verify page
+        req.session.otpEmail = user.email;
+        req.session.otpUsername = user.username;
+        req.session.pendingUserId = user._id;
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        try {
+            await sendOtpEmail(user.email, otp);
+            req.flash('success', `A login OTP has been sent to ${maskEmail(user.email)}`);
+        } catch (mailErr) {
+            console.error('Login OTP email failed:', mailErr.message);
+            req.flash('error', 'Failed to send login OTP. Please try again later.');
+            return res.redirect('/login');
+        }
+
+        return res.redirect('/verify-otp');
+    } catch (err) {
+        return next(err);
+    }
 };
 
 // ─── Logout ───────────────────────────────────────────────────────────────────

@@ -15,6 +15,9 @@
 
             <!-- OTP Form -->
             <form action="/verify-otp" method="POST" id="otpForm">
+                <% if (typeof pendingUserId !== 'undefined') { %>
+                    <input type="hidden" name="pendingUserId" value="<%= pendingUserId %>">
+                <% } %>
                 <div class="otp-input-group mb-4" id="otpInputGroup">
                     <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d1" name="d1" autofocus>
                     <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d2" name="d2">
