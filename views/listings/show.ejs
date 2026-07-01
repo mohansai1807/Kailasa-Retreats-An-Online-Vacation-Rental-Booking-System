@@ -209,7 +209,8 @@
             <div class="leave-review-card shadow-sm border mt-4">
                 <h4 class="fw-bold mb-4"><i class="fa-solid fa-pen-fancy me-2"></i>Share Your Experience</h4>
                 
-                <form method="POST" action="/listings/<%= listing._id %>/reviews" novalidate class="needs-validation">
+                    <form method="POST" action="/listings/<%= listing._id %>/reviews" novalidate
+                        class="needs-validation">
                     <div class="mb-4">
                         <label for="rating" class="form-label">
                             Your Rating: <span class="badge bg-danger rounded-pill ms-2" id="ratingValue">3</span> Stars
