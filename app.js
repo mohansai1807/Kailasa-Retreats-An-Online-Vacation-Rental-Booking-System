@@ -7,8 +7,8 @@
 // Core framework and server setup
 const express = require('express');
 const app = express();
-const port = 8080;
 const path = require('path');
+const port = process.env.PORT || 8080;
 
 // Database and view engine support
 const mongoose = require('mongoose');
@@ -43,7 +43,7 @@ app.use(methodOverride('_method'));
 
 // Session cookie settings
 const sessionOptions = {
-  secret: 'mysupersecretcode',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -78,8 +78,8 @@ app.use((req, res, next) => {
 
 // Database connection
 async function main() {
-  await mongoose.connect('mongodb://localhost:27017/wunderlust');
-  console.log('Connected to MongoDB');
+  await mongoose.connect(process.env.ATLAS_URI);
+  console.log("Connected to MongoDB Atlas");
 }
 
 main()

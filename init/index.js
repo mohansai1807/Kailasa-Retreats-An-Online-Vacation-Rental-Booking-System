@@ -1,13 +1,19 @@
-const mongoose = require('mongoose');
+const path = require("path");
 
+require("dotenv").config({
+    path: path.resolve(__dirname, "../.env"),
+});
+
+const mongoose = require("mongoose");
 const initdata = require("./data.js");
+const Listing = require("../models/listing.js");
 
-const Listing = require('../models/listing.js');
-
+console.log("ATLAS_URI =", process.env.ATLAS_URI);
+console.log("Loaded ENV =", process.env.ATLAS_URI ? "YES" : "NO");
 
 async function main() {
-    await mongoose.connect('mongodb://localhost:27017/wunderlust');
-    console.log("Connected to MongoDB");
+  await mongoose.connect(process.env.ATLAS_URI);
+  console.log("Connected to MongoDB Atlas");
 }
 
 main().then(() => {

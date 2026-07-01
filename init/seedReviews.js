@@ -12,8 +12,8 @@ const SAMPLE_REVIEWS = [
 
 async function seed() {
   try {
-    await mongoose.connect('mongodb://localhost:27017/wunderlust');
-    console.log('Connected to MongoDB');
+    await mongoose.connect(process.env.ATLAS_URI);
+    console.log('Connected to MongoDB Atlas');
 
     const listings = await Listing.find({});
     console.log(`Found ${listings.length} listings`);
