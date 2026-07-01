@@ -25,7 +25,7 @@ router.get('/:id', listingController.show);
 router.get('/:id/edit', isLoggedIn, isAdmin, listingController.edit);
 
 // Update Route (admin only)
-router.put('/:id', isLoggedIn, isAdmin, listingController.update);
+router.put('/:id', isLoggedIn, isAdmin, upload.single('listing[image]'), listingController.update);
 
 // Delete Route (admin only)
 router.delete('/:id', isLoggedIn, isAdmin, listingController.delete);

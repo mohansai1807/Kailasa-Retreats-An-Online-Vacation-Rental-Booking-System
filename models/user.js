@@ -7,12 +7,21 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true
-    }
-    ,
+    },
     role: {
         type: String,
         enum: ["user", "admin"],
         default: "user"
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
+        type: String   // stored as bcrypt hash
+    },
+    otpExpiry: {
+        type: Date
     }
 });
 

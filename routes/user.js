@@ -8,6 +8,11 @@ const { saveRedirectUrl } = require('../middleware.js');
 router.get('/signup', userController.renderSignupForm);
 router.post('/signup', userController.signup);
 
+// OTP Verification
+router.get('/verify-otp', userController.renderVerifyOtp);
+router.post('/verify-otp', userController.verifyOtp);
+router.post('/resend-otp', userController.resendOtp);
+
 // Login
 router.get('/login', userController.renderLoginForm);
 router.post(

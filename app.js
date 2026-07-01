@@ -1,4 +1,4 @@
-﻿if(process.env.NODE_ENV != "production"){
+if(process.env.NODE_ENV != "production"){
   require("dotenv").config();
 }
 // console.log(process.env.SECRET);
@@ -30,6 +30,7 @@ const reviewRouter = require('./routes/review');
 const userRouter = require('./routes/user');
 const bookingRouter = require('./routes/booking');
 const bookingsMainRouter = require('./routes/bookingsMain');
+const contactRouter = require('./routes/contact');
 
 // View engine and parser setup
 app.engine('ejs', ejsMate);
@@ -97,6 +98,7 @@ app.use('/listings', listingRouter);
 app.use('/listings/:id/reviews', reviewRouter);
 app.use('/listings/:id/bookings', bookingRouter);
 app.use('/bookings', bookingsMainRouter);
+app.use('/', contactRouter);
 app.use('/', userRouter);
 
 // Error Handling: preventing from the app crash

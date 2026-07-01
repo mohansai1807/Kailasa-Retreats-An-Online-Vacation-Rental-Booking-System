@@ -1,4 +1,18 @@
 const Listing = require('../models/listing');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
+const mapToken = process.env.MAPBOX_TOKEN;
+let geocodingClient;
+
+if (mapToken && (mapToken.startsWith("pk.") || mapToken.startsWith("sk."))) {
+  try {
+    geocodingClient = mbxGeocoding({ accessToken: mapToken });
+  } catch (err) {
+    console.error("Failed to initialize Mapbox client:", err);
+  }
+} else {
+  console.warn("Mapbox Token is missing or invalid. Geocoding will be disabled and fallbacks will be used.");
+}
+
 
 module.exports.index = async (req, res, next) => {
   try {
@@ -25,7 +39,10 @@ module.exports.show = async (req, res, next) => {
     }
 
     console.log(listing);
-    res.render('listings/show.ejs', { listing });
+    res.render("listings/show", {
+        listing,
+        mapToken: process.env.MAPBOX_TOKEN
+    });
   } catch (err) {
     next(err);
   }
@@ -37,12 +54,31 @@ module.exports.new = (req, res) => {
 
 module.exports.create = async (req, res, next) => {
   try {
+    let response;
+    try {
+      if (process.env.MAPBOX_TOKEN) {
+          response = await geocodingClient.forwardGeocode({
+          query: req.body.listing.location,
+          limit: 1
+        }).send();
+      }
+    } catch (geocodeErr) {
+      console.error("Geocoding failed during creation:", geocodeErr);
+    }
+
     let url = req.file.path;
     let filename = req.file.filename;
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
-    newListing.image = {url,filename};
-    
+    newListing.image = { url, filename };
+
+    if (response && response.body && response.body.features && response.body.features.length > 0) {
+      newListing.geometry = response.body.features[0].geometry;
+    } else {
+      // Fallback coordinate: New Delhi [lng, lat]
+      newListing.geometry = { type: 'Point', coordinates: [77.2090, 28.6139] };
+    }
+
     await newListing.save();
     req.flash('success', 'New Listing Created');
     res.redirect('/listings');
@@ -69,10 +105,49 @@ module.exports.edit = async (req, res, next) => {
 module.exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, image, price, location, country } = req.body.listing || req.body;
+    const { title, description, price, location, country } = req.body.listing;
 
-    await Listing.findByIdAndUpdate(id, { title, description, image, price, location, country });
-    req.flash('success', 'Updated Successfully');
+    let listing = await Listing.findById(id);
+
+    // Geocode the new location if location has changed or if geometry is missing
+    if (listing.location !== location || !listing.geometry) {
+      let response;
+      try {
+        if (process.env.MAPBOX_TOKEN) {
+          response = await geocodingClient.forwardGeocode({
+            query: location,
+            limit: 1
+          }).send();
+        }
+      } catch (geocodeErr) {
+        console.error("Geocoding failed during update:", geocodeErr);
+      }
+
+      if (response && response.body && response.body.features && response.body.features.length > 0) {
+        listing.geometry = response.body.features[0].geometry;
+      } else if (!listing.geometry) {
+        // Fallback coordinate: New Delhi
+        listing.geometry = { type: 'Point', coordinates: [77.2090, 28.6139] };
+      }
+    }
+
+    listing.title = title;
+    listing.description = description;
+    listing.price = price;
+    listing.location = location;
+    listing.country = country;
+
+    // Update image only if a new one is uploaded
+    if (req.file) {
+      listing.image = {
+        url: req.file.path,
+        filename: req.file.filename,
+      };
+    }
+
+    await listing.save();
+
+    req.flash("success", "Updated Successfully");
     res.redirect(`/listings/${id}`);
   } catch (err) {
     next(err);

@@ -23,13 +23,13 @@
                     <% } %>
 
                         <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate
-                            class="needs-validation">
+                            class="nee ds-validation" enctype="multipart/form-data">
 
                             <!-- Title -->
                             <div class="mb-4">
                                 <label for="title" class="form-label">Retreat Title</label>
                                 <input type="text" name="listing[title]" id="title" value="<%= listing.title %>"
-                                    class="form-control" placeholder="Add listing title" required>
+                                    class="form-control" plac eholder="Add listing title" required>
                                 <div class="invalid-feedback">
                                     Please enter a valid title.
                                 </div>
@@ -75,11 +75,14 @@
                                 </div>
                             </div>
 
-                            <!-- Image URL -->
+                            <!-- Upload New Image -->
                             <div class="mb-4">
-                                <label for="image" class="form-label">Image URL</label>
-                                <input type="url" id="image" 
-                                    class="form-control" placeholder="Image URL link">
+                                <label for="image" class="form-label">Upload New Image</label>
+                                <input type="file" name="listing[image]" id="image" class="form-control"
+                                    accept="image/*">
+                                <small class="text-muted">
+                                    Leave empty if you don't want to change the current image.
+                                </small>
                             </div>
 
                             <!-- Country -->

@@ -46,6 +46,18 @@ const listingSchema = new Schema({
         trim: true,
     },
 
+    geometry: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
+
     reviews: {
         type: [{
             type: Schema.Types.ObjectId,

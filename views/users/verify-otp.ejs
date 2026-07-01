@@ -1,0 +1,120 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container auth-container">
+    <div class="auth-card shadow-lg otp-card">
+
+        <div class="auth-header">
+            <div class="otp-icon-ring mb-3">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <h2>Verify Your Email</h2>
+            <p>We sent a 6-digit code to <strong><%= maskedEmail %></strong></p>
+        </div>
+
+        <div class="auth-body">
+
+            <!-- OTP Form -->
+            <form action="/verify-otp" method="POST" id="otpForm">
+                <div class="otp-input-group mb-4" id="otpInputGroup">
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d1" name="d1" autofocus>
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d2" name="d2">
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d3" name="d3">
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d4" name="d4">
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d5" name="d5">
+                    <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" id="d6" name="d6">
+                </div>
+
+                <!-- Countdown Timer -->
+                <div class="otp-timer-row mb-4" id="timerSection">
+                    <i class="fa-regular fa-clock text-muted me-1"></i>
+                    <span class="text-muted" style="font-size:14px;">Code expires in </span>
+                    <span id="countdown" class="otp-countdown">10:00</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary-custom w-100 py-2 rounded-pill mb-3" id="verifyBtn">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Verify Code
+                </button>
+            </form>
+
+            <!-- Resend OTP Form -->
+            <div class="text-center mt-2">
+                <p class="text-muted mb-2" style="font-size:14px;" id="resendPrompt">
+                    Didn't receive the code?
+                </p>
+                <form action="/resend-otp" method="POST" id="resendForm">
+                    <button type="submit" class="btn btn-outline-custom rounded-pill px-4" id="resendBtn" disabled>
+                        <i class="fa-solid fa-rotate-right me-1"></i>
+                        Resend OTP <span id="resendTimer">(60s)</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <a href="/signup" class="text-muted" style="font-size:13px;">
+                    <i class="fa-solid fa-angle-left me-1"></i> Back to Sign Up
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Auto-advance OTP digit inputs ────────────────────────────────────────────
+const boxes = document.querySelectorAll('.otp-box');
+boxes.forEach((box, idx) => {
+    box.addEventListener('input', () => {
+        box.value = box.value.replace(/[^0-9]/g, '');
+        if (box.value && idx < boxes.length - 1) {
+            boxes[idx + 1].focus();
+        }
+    });
+    box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && idx > 0) {
+            boxes[idx - 1].focus();
+        }
+        // Allow paste
+        if (e.key === 'v' && (e.ctrlKey || e.metaKey)) return;
+    });
+});
+
+// Handle paste into first box
+boxes[0].addEventListener('paste', (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    pasted.split('').forEach((char, i) => {
+        if (boxes[i]) boxes[i].value = char;
+    });
+    if (boxes[pasted.length - 1]) boxes[pasted.length - 1].focus();
+});
+
+// ── 10-minute OTP Countdown ──────────────────────────────────────────────────
+let totalSeconds = 10 * 60;
+const countdownEl = document.getElementById('countdown');
+const countdownTimer = setInterval(() => {
+    totalSeconds--;
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const s = (totalSeconds % 60).toString().padStart(2, '0');
+    countdownEl.textContent = `${m}:${s}`;
+    if (totalSeconds <= 60) countdownEl.style.color = '#ff385c';
+    if (totalSeconds <= 0) {
+        clearInterval(countdownTimer);
+        countdownEl.textContent = 'Expired';
+        document.getElementById('verifyBtn').disabled = true;
+        document.getElementById('verifyBtn').textContent = 'Code Expired — Resend below';
+    }
+}, 1000);
+
+// ── 60-second Resend Cooldown ─────────────────────────────────────────────────
+let resendSeconds = 60;
+const resendBtn = document.getElementById('resendBtn');
+const resendTimerEl = document.getElementById('resendTimer');
+const resendCooldown = setInterval(() => {
+    resendSeconds--;
+    resendTimerEl.textContent = resendSeconds > 0 ? `(${resendSeconds}s)` : '';
+    if (resendSeconds <= 0) {
+        clearInterval(resendCooldown);
+        resendBtn.disabled = false;
+        resendBtn.classList.add('resend-active');
+    }
+}, 1000);
+</script>

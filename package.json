@@ -9,6 +9,8 @@
   "author": "Mohanasai",
   "license": "ISC",
   "dependencies": {
+    "@mapbox/mapbox-sdk": "^0.16.2",
+    "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",
     "connect-flash": "^0.1.1",
     "dotenv": "^17.4.2",
@@ -22,6 +24,7 @@
     "multer": "^2.2.0",
     "multer-cloud-storage": "^4.1.0",
     "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^9.0.3",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^9.1.0"
