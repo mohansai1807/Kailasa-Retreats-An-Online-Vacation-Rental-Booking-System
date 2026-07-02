@@ -63,7 +63,7 @@ const initdb = async () => {
         const coords = cityCoords[obj.location] || [77.2090, 28.6139];
         return {
             ...obj,
-            owner: "6a3bdc0f7dc8c7d256e6d66e",
+            owner: "6a45e368e6c8618325cad244",
             geometry: {
                 type: "Point",
                 coordinates: coords
