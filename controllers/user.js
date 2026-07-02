@@ -179,7 +179,7 @@ module.exports.resendOtp = async (req, res) => {
             await sendOtpEmail(email, otp);
             req.flash('success', `A new OTP has been sent to ${maskEmail(email)}`);
         } catch (mailErr) {
-            console.error('Resend OTP email failed:', mailErr.message);
+            console.error('Resend OTP email failed — code:', mailErr.code, '| response:', mailErr.response, '| message:', mailErr.message);
             req.flash('error', 'Failed to send OTP. Please try again.');
         }
 
@@ -222,7 +222,7 @@ module.exports.login = async (req, res, next) => {
             await sendOtpEmail(user.email, otp);
             req.flash('success', `A login OTP has been sent to ${maskEmail(user.email)}`);
         } catch (mailErr) {
-            console.error('Login OTP email failed:', mailErr.message);
+            console.error('Login OTP email failed — code:', mailErr.code, '| response:', mailErr.response, '| message:', mailErr.message);
             req.flash('error', 'Failed to send login OTP. Please try again later.');
             return res.redirect('/login');
         }
