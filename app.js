@@ -1,6 +1,7 @@
-﻿if(process.env.NODE_ENV != "production"){
+if(process.env.NODE_ENV != "production"){
   require("dotenv").config();
 }
+
 // console.log(process.env.SECRET);
 
 
@@ -41,6 +42,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
+// Trust Render's reverse proxy so secure cookies work over HTTPS
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Session cookie settings
 const sessionOptions = {
   secret: process.env.SESSION_SECRET,
@@ -49,7 +55,8 @@ const sessionOptions = {
   cookie: {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production' // Use secure cookies on Render (HTTPS)
   }
 };
 
