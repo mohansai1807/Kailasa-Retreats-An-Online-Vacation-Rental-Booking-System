@@ -7,6 +7,17 @@ const {
   queryConfirmTemplate,
 } = require("./emailTemplates");
 
+let resendClient = null;
+
+try {
+  const { Resend } = require("resend");
+  if (process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+} catch (err) {
+  resendClient = null;
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "smtp.gmail.com",
   port: Number(process.env.EMAIL_PORT || 587),
@@ -20,9 +31,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const fromAddress = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || process.env.EMAIL_USER;
+const fromAddress = process.env.EMAIL_FROM || process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
 
 const sendMail = async ({ to, subject, html }) => {
+  if (resendClient && process.env.RESEND_API_KEY) {
+    const { data, error } = await resendClient.emails.send({
+      from: process.env.RESEND_FROM || "Kailasa Retreats <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Resend email delivery failed");
+    }
+
+    return data;
+  }
+
   await transporter.sendMail({
     from: fromAddress,
     to,
@@ -66,9 +92,11 @@ module.exports.sendQueryEmail = async ({
   subject,
   message,
 }) => {
+  const adminEmail = process.env.ADMIN_EMAIL || 'saikmohan1@gmail.com';
+
   // Send to admin
   await sendMail({
-    to: process.env.ADMIN_EMAIL || 'saikmohan1@gmail.com',
+    to: adminEmail,
     subject: `New Query: ${subject}`,
     html: queryAdminTemplate({
       name,

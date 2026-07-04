@@ -7,8 +7,8 @@ const multer = require("multer");
 const {storage} = require("../cloudconfig.js")
 const upload = multer({storage});
 
-// Index Route (public - anyone can browse listings)
-router.get("/", listingController.index);
+// Index Route (protected)
+router.get("/", isLoggedIn, listingController.index);
 
 router.post("/", isLoggedIn, upload.single('listing[image]'), listingController.create);
 
@@ -18,8 +18,8 @@ router.get('/new', isLoggedIn, isAdmin, listingController.new);
 // Create Route (admin only)
 router.post('/', isLoggedIn, isAdmin, listingController.create);
 
-// Show Route
-router.get('/:id', listingController.show);
+// Show Route (protected)
+router.get('/:id', isLoggedIn, listingController.show);
 
 // Edit Route (admin only)
 router.get('/:id/edit', isLoggedIn, isAdmin, listingController.edit);
