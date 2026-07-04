@@ -35,6 +35,8 @@ module.exports.signup = async (req, res) => {
         regUser.otpExpiry = otpExpiry;
         await regUser.save();
 
+        console.log(`[OTP DEBUG] Generated Signup OTP for ${email}: ${otp}`);
+
         // Store email, pending user ID and flow type in session for the verify page
         req.session.otpEmail = email;
         req.session.otpUsername = username;
@@ -192,6 +194,8 @@ module.exports.resendOtp = async (req, res) => {
         user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
 
+        console.log(`[OTP DEBUG] Generated Resend OTP for ${email}: ${otp}`);
+
         // Send OTP email in the background (non-blocking)
         sendOtpEmail(email, otp).catch(mailErr => {
             console.error('Resend OTP email failed — code:', mailErr.code, '| response:', mailErr.response, '| message:', mailErr.message);
@@ -229,6 +233,9 @@ module.exports.login = async (req, res, next) => {
             user.otp = hashedOtp;
             user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
             await user.save();
+
+            console.log(`[OTP DEBUG] Generated Signup Prompt Login OTP for ${user.email}: ${otp}`);
+
             sendOtpEmail(user.email, otp).catch(e => console.error('Signup prompt OTP email failed:', e.message));
             return res.redirect('/verify-otp');
         }
@@ -239,6 +246,8 @@ module.exports.login = async (req, res, next) => {
         user.otp = hashedOtp;
         user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
+
+        console.log(`[OTP DEBUG] Generated Login OTP for ${user.email}: ${otp}`);
 
         // Store email, pending user ID, redirect destination and flow type in session
         req.session.otpEmail = user.email;
