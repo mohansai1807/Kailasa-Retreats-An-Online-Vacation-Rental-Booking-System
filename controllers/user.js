@@ -182,7 +182,7 @@ module.exports.resendOtp = async (req, res) => {
         const otp = generateOtp();
         const hashedOtp = await bcrypt.hash(otp, 10);
         user.otp = hashedOtp;
-        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+        user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
         await user.save();
 
         console.log(`[OTP DEBUG] Generated Resend OTP for ${email}: ${otp}`);
@@ -222,7 +222,7 @@ module.exports.login = async (req, res, next) => {
             const otp = generateOtp();
             const hashedOtp = await bcrypt.hash(otp, 10);
             user.otp = hashedOtp;
-            user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+            user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
             await user.save();
 
             console.log(`[OTP DEBUG] Generated Signup Prompt Login OTP for ${user.email}: ${otp}`);
@@ -235,7 +235,7 @@ module.exports.login = async (req, res, next) => {
         const otp = generateOtp();
         const hashedOtp = await bcrypt.hash(otp, 10);
         user.otp = hashedOtp;
-        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+        user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
         await user.save();
 
         console.log(`[OTP DEBUG] Generated Login OTP for ${user.email}: ${otp}`);

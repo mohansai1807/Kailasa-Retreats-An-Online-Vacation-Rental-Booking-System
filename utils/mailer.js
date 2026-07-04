@@ -20,9 +20,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const fromAddress = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || process.env.EMAIL_USER;
+
 const sendMail = async ({ to, subject, html }) => {
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    from: fromAddress,
     to,
     subject,
     html,
