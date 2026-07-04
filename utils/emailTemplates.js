@@ -2,6 +2,9 @@
 const brandColor = '#ff385c';
 const fontStack = "'Segoe UI', Arial, sans-serif";
 
+// Safely build the base URL — strip any trailing slash so links never get double slashes
+const appUrl = () => (process.env.APP_URL || 'http://localhost:8080').replace(/\/$/, '');
+
 const baseWrapper = (content) => `
 <!DOCTYPE html>
 <html>
@@ -60,7 +63,7 @@ module.exports.otpTemplate = (otp) => baseWrapper(`
   <p style="margin:0;color:#aaaaaa;font-size:13px;">If you did not create a Kailasa Retreats account, you can safely ignore this email.</p>
 `);
 
-// Welcome email template
+// Welcome email template (fires after signup OTP verification)
 module.exports.welcomeTemplate = (username) => baseWrapper(`
   <h2 style="margin:0 0 8px;color:#222222;font-size:22px;font-weight:700;">Welcome, ${username}! 🎉</h2>
   <p style="margin:0 0 24px;color:#717171;font-size:15px;line-height:1.6;">
@@ -71,12 +74,39 @@ module.exports.welcomeTemplate = (username) => baseWrapper(`
     <p style="margin:6px 0 0;color:#52796f;font-size:13px;">You can now browse listings, make bookings, and leave reviews.</p>
   </div>
   <div style="text-align:center;margin:28px 0;">
-    <a href="${process.env.APP_URL || 'http://localhost:8080'}/listings"
+    <a href="${appUrl()}/listings"
        style="background:${brandColor};color:#ffffff;padding:14px 36px;border-radius:999px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">
       Browse Retreats →
     </a>
   </div>
   <p style="margin:0;color:#aaaaaa;font-size:13px;text-align:center;">Happy exploring with Kailasa Retreats!</p>
+`);
+
+// Login success greeting email (fires after successful OTP login)
+module.exports.loginSuccessTemplate = (username) => baseWrapper(`
+  <h2 style="margin:0 0 8px;color:#222222;font-size:22px;font-weight:700;">Welcome back, ${username}! 👋</h2>
+  <p style="margin:0 0 24px;color:#717171;font-size:15px;line-height:1.6;">
+    You have successfully signed in to your Kailasa Retreats account. Ready to plan your next getaway?
+  </p>
+  <div style="background:#f0f7ff;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
+    <p style="margin:0;color:#1a56db;font-size:14px;font-weight:600;">🔐 Secure login verified</p>
+    <p style="margin:6px 0 0;color:#4b7bb5;font-size:13px;line-height:1.6;">
+      Your identity was confirmed via OTP. If this wasn't you, please change your password immediately.
+    </p>
+  </div>
+  <div style="text-align:center;margin:28px 0;">
+    <a href="${appUrl()}/listings"
+       style="background:${brandColor};color:#ffffff;padding:14px 36px;border-radius:999px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">
+      🏡 Explore Retreats Now
+    </a>
+  </div>
+  <p style="margin:0 0 8px;color:#aaaaaa;font-size:13px;text-align:center;">
+    Discover handpicked retreats across India. Book your perfect stay in minutes.
+  </p>
+  <p style="margin:0;color:#dddddd;font-size:12px;text-align:center;">
+    If you did not sign in, please 
+    <a href="${appUrl()}/login" style="color:${brandColor};text-decoration:none;">secure your account here</a>.
+  </p>
 `);
 
 // Query admin notification template
@@ -109,8 +139,12 @@ module.exports.queryConfirmTemplate = (name, subject) => baseWrapper(`
       Our team will review your inquiry and get back to you within <strong>24–48 hours</strong>.
     </p>
   </div>
-  <p style="margin:0;color:#aaaaaa;font-size:13px;">
-    In the meantime, feel free to browse our listings at 
-    <a href="${process.env.APP_URL}/listings" style="color:${brandColor};">Kailasa Retreats</a>.
-  </p>
+  <div style="text-align:center;margin:24px 0;">
+    <a href="${appUrl()}/listings"
+       style="background:${brandColor};color:#ffffff;padding:12px 32px;border-radius:999px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">
+      Browse Listings
+    </a>
+  </div>
+  <p style="margin:0;color:#aaaaaa;font-size:13px;text-align:center;">Thank you for choosing Kailasa Retreats!</p>
 `);
+

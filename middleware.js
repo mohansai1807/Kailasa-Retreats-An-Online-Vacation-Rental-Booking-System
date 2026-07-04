@@ -10,6 +10,13 @@ module.exports.isLoggedIn = (req, res, next) => {
     return res.redirect('/login');
   }
 
+  // Block access if email is not yet verified
+  if (!req.user.isVerified) {
+    req.session.redirectUrl = req.originalUrl;
+    req.flash('error', 'Please verify your email before continuing.');
+    return res.redirect('/verify-otp');
+  }
+
   next();
 };
 

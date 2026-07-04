@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
-const { sendOtpEmail, sendWelcomeEmail } = require('../utils/mailer');
+const { sendOtpEmail, sendWelcomeEmail, sendLoginSuccessEmail } = require('../utils/mailer');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -35,26 +35,29 @@ module.exports.signup = async (req, res) => {
         regUser.otpExpiry = otpExpiry;
         await regUser.save();
 
-        // Store email and pending user ID in session for the verify page
+        // Store email, pending user ID and flow type in session for the verify page
         req.session.otpEmail = email;
         req.session.otpUsername = username;
         req.session.pendingUserId = regUser._id;
+        req.session.otpFlowType = 'signup';
         await new Promise(resolve => req.session.save(resolve));
 
-        // Send a welcome email immediately after signup (non-blocking)
+        // Send OTP email (welcome email will fire after successful verification)
         try {
-            await sendWelcomeEmail(email, username);
+            await sendOtpEmail(email, otp);
+            req.flash('success', `Account created! A verification code has been sent to ${maskEmail(email)}.`);
         } catch (mailErr) {
-            console.error('Welcome email failed:', mailErr.message);
+            console.error('Signup OTP email failed:', mailErr.message);
+            req.flash('error', 'Account created but we could not send the verification email. Please use Resend OTP.');
         }
 
-        req.flash('success', `${username} created account successfully. Continue to login.`);
-        res.redirect('/login');
+        res.redirect('/verify-otp');
     } catch (err) {
         req.flash('error', err.message);
         res.redirect('/signup');
     }
 };
+
 
 // ─── OTP Verification ────────────────────────────────────────────────────────
 
@@ -77,7 +80,9 @@ module.exports.renderVerifyOtp = async (req, res, next) => {
         req.flash('error', 'Session expired. Please sign up again.');
         return res.redirect('/signup');
     }
-    res.render('users/verify-otp.ejs', { maskedEmail: maskEmail(email), pendingUserId: req.session.pendingUserId });
+    // flowType tells the view whether this OTP is for login or signup
+    const flowType = req.session.otpFlowType || 'signup';
+    res.render('users/verify-otp.ejs', { maskedEmail: maskEmail(email), pendingUserId: req.session.pendingUserId, flowType });
 };
 
 module.exports.verifyOtp = async (req, res, next) => {
@@ -122,17 +127,28 @@ module.exports.verifyOtp = async (req, res, next) => {
             return res.redirect('/verify-otp');
         }
 
+        const isLoginFlow = req.session.otpFlowType === 'login';
+
         // Mark verified + clear OTP fields
         user.isVerified = true;
         user.otp = undefined;
         user.otpExpiry = undefined;
         await user.save();
 
-        // Send welcome email (non-blocking)
-        try {
-            await sendWelcomeEmail(user.email, user.username);
-        } catch (mailErr) {
-            console.error('Welcome email failed:', mailErr.message);
+        // Send welcome email ONLY during signup verification (not on every login)
+        if (!isLoginFlow) {
+            try {
+                await sendWelcomeEmail(user.email, user.username);
+            } catch (mailErr) {
+                console.error('Welcome email failed:', mailErr.message);
+            }
+        } else {
+            // Send login success greeting email
+            try {
+                await sendLoginSuccessEmail(user.email, user.username);
+            } catch (mailErr) {
+                console.error('Login success email failed:', mailErr.message);
+            }
         }
 
         // Auto-login the user
@@ -143,7 +159,11 @@ module.exports.verifyOtp = async (req, res, next) => {
             req.session.otpUsername = null;
             req.session.pendingUserId = null;
             req.session.redirectUrl = null;
-            req.flash('success', `Welcome to Kailasa Retreats, ${user.username}! Your email is verified.`);
+            req.session.otpFlowType = null;
+            const successMsg = isLoginFlow
+                ? `Welcome back, ${user.username}!`
+                : `Welcome to Kailasa Retreats, ${user.username}! Your email is verified.`;
+            req.flash('success', successMsg);
             res.redirect(redirectUrl);
         });
     } catch (err) {
@@ -200,6 +220,24 @@ module.exports.login = async (req, res, next) => {
     try {
         const user = req.user;
 
+        // If the user's email is not yet verified, redirect them to complete OTP verification
+        if (!user.isVerified) {
+            req.session.otpEmail = user.email;
+            req.session.otpUsername = user.username;
+            req.session.pendingUserId = user._id;
+            req.session.otpFlowType = 'signup';
+            await new Promise((resolve, reject) => req.session.save(err => err ? reject(err) : resolve()));
+            req.flash('error', 'Please verify your email first. A new OTP has been sent.');
+            // Generate a fresh OTP so they are not stuck
+            const otp = generateOtp();
+            const hashedOtp = await bcrypt.hash(otp, 10);
+            user.otp = hashedOtp;
+            user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+            await user.save();
+            try { await sendOtpEmail(user.email, otp); } catch (e) { /* silent */ }
+            return res.redirect('/verify-otp');
+        }
+
         // Generate a fresh OTP for login and save it to the user record
         const otp = generateOtp();
         const hashedOtp = await bcrypt.hash(otp, 10);
@@ -207,10 +245,11 @@ module.exports.login = async (req, res, next) => {
         user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
 
-        // Store email, pending user ID and redirect destination in session for the verify page
+        // Store email, pending user ID, redirect destination and flow type in session
         req.session.otpEmail = user.email;
         req.session.otpUsername = user.username;
         req.session.pendingUserId = user._id;
+        req.session.otpFlowType = 'login';
         await new Promise((resolve, reject) => {
             req.session.save((err) => {
                 if (err) return reject(err);

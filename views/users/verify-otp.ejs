@@ -53,9 +53,15 @@
             </div>
 
             <div class="text-center mt-4 pt-3 border-top">
-                <a href="/signup" class="text-muted" style="font-size:13px;">
-                    <i class="fa-solid fa-angle-left me-1"></i> Back to Sign Up
-                </a>
+                <% if (typeof flowType !== 'undefined' && flowType === 'login') { %>
+                    <a href="/login" class="text-muted" style="font-size:13px;">
+                        <i class="fa-solid fa-angle-left me-1"></i> Back to Login
+                    </a>
+                <% } else { %>
+                    <a href="/signup" class="text-muted" style="font-size:13px;">
+                        <i class="fa-solid fa-angle-left me-1"></i> Back to Sign Up
+                    </a>
+                <% } %>
             </div>
         </div>
     </div>

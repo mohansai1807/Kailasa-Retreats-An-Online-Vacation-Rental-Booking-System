@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const {
   otpTemplate,
   welcomeTemplate,
+  loginSuccessTemplate,
   queryAdminTemplate,
   queryConfirmTemplate,
 } = require("./emailTemplates");
@@ -40,6 +41,15 @@ module.exports.sendWelcomeEmail = async (to, username) => {
     to,
     subject: `Welcome to Kailasa Retreats, ${username}!`,
     html: welcomeTemplate(username),
+  });
+};
+
+// Send login success greeting email
+module.exports.sendLoginSuccessEmail = async (to, username) => {
+  await sendMail({
+    to,
+    subject: `You're now signed in — Welcome back, ${username}!`,
+    html: loginSuccessTemplate(username),
   });
 };
 
