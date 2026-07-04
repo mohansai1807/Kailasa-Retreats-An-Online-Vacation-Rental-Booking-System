@@ -7,8 +7,8 @@ const multer = require("multer");
 const {storage} = require("../cloudconfig.js")
 const upload = multer({storage});
 
-// Index Route (require login to browse listings from homepage)
-router.get("/", isLoggedIn, listingController.index);
+// Index Route (public - anyone can browse listings)
+router.get("/", listingController.index);
 
 router.post("/", isLoggedIn, upload.single('listing[image]'), listingController.create);
 

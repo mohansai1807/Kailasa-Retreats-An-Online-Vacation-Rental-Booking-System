@@ -1,4 +1,4 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 const {
   otpTemplate,
   welcomeTemplate,
@@ -6,12 +6,28 @@ const {
   queryConfirmTemplate,
 } = require("./emailTemplates");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || "smtp.gmail.com",
+  port: Number(process.env.EMAIL_PORT || 587),
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+const sendMail = async ({ to, subject, html }) => {
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+  });
+};
 
 // Send OTP verification email
 module.exports.sendOtpEmail = async (to, otp) => {
-  await resend.emails.send({
-    from: "Kailasa Retreats <onboarding@resend.dev>",
+  await sendMail({
     to,
     subject: `${otp} is your Kailasa Retreats verification code`,
     html: otpTemplate(otp),
@@ -20,8 +36,7 @@ module.exports.sendOtpEmail = async (to, otp) => {
 
 // Send welcome email
 module.exports.sendWelcomeEmail = async (to, username) => {
-  await resend.emails.send({
-    from: "Kailasa Retreats <onboarding@resend.dev>",
+  await sendMail({
     to,
     subject: `Welcome to Kailasa Retreats, ${username}!`,
     html: welcomeTemplate(username),
@@ -37,8 +52,7 @@ module.exports.sendQueryEmail = async ({
   message,
 }) => {
   // Send to admin
-  await resend.emails.send({
-    from: "Kailasa Retreats <onboarding@resend.dev>",
+  await sendMail({
     to: process.env.ADMIN_EMAIL,
     subject: `New Query: ${subject}`,
     html: queryAdminTemplate({
@@ -51,8 +65,7 @@ module.exports.sendQueryEmail = async ({
   });
 
   // Auto reply to user
-  await resend.emails.send({
-    from: "Kailasa Retreats <onboarding@resend.dev>",
+  await sendMail({
     to: email,
     subject: `We received your query — ${subject}`,
     html: queryConfirmTemplate(name, subject),

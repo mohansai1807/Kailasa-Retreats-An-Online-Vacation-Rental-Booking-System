@@ -41,15 +41,15 @@ module.exports.signup = async (req, res) => {
         req.session.pendingUserId = regUser._id;
         await new Promise(resolve => req.session.save(resolve));
 
-        // Send OTP email (non-blocking: failure won't crash signup)
+        // Send a welcome email immediately after signup (non-blocking)
         try {
-            await sendOtpEmail(email, otp);
+            await sendWelcomeEmail(email, username);
         } catch (mailErr) {
-            console.error('OTP email failed:', mailErr.message);
+            console.error('Welcome email failed:', mailErr.message);
         }
 
-        req.flash('success', `A 6-digit verification code has been sent to ${maskEmail(email)}`);
-        res.redirect('/verify-otp');
+        req.flash('success', `${username} created account successfully. Continue to login.`);
+        res.redirect('/login');
     } catch (err) {
         req.flash('error', err.message);
         res.redirect('/signup');

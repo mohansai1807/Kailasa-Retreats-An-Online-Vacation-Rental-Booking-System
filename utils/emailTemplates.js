@@ -111,6 +111,6 @@ module.exports.queryConfirmTemplate = (name, subject) => baseWrapper(`
   </div>
   <p style="margin:0;color:#aaaaaa;font-size:13px;">
     In the meantime, feel free to browse our listings at 
-    <a href="${process.env.APP_URL || 'https://kailasa-retreats-an-online-vacation.onrender.com/'}/listings" style="color:${brandColor};">Kailasa Retreats</a>.
+    <a href="${process.env.APP_URL}/listings" style="color:${brandColor};">Kailasa Retreats</a>.
   </p>
 `);
