@@ -1,13 +1,25 @@
 require('dotenv').config();
-const { sendOtpEmail } = require('./utils/mailer');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function testSend() {
-    console.log('Sending actual test OTP email to:', process.env.EMAIL_USER);
+    console.log('Sending test email using Resend API to:', process.env.EMAIL_USER);
     try {
-        await sendOtpEmail(process.env.EMAIL_USER, '123456');
-        console.log('✅ OTP email sent successfully! Please check your inbox (including Spam folder).');
+        const { data, error } = await resend.emails.send({
+            from: 'Kailasa Retreats <onboarding@resend.dev>',
+            to: process.env.EMAIL_USER || 'saikmohan1@gmail.com',
+            subject: 'Resend Test OTP',
+            html: '<strong>Your test code is 123456</strong>'
+        });
+
+        if (error) {
+            console.error('❌ Resend returned an error:', error);
+        } else {
+            console.log('✅ Email sent successfully via Resend! ID:', data.id);
+        }
     } catch (err) {
-        console.error('❌ Failed to send test OTP email:', err);
+        console.error('❌ Failed to send test email:', err);
     }
     process.exit(0);
 }

@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const {
   otpTemplate,
   welcomeTemplate,
@@ -7,35 +7,28 @@ const {
   queryConfirmTemplate,
 } = require("./emailTemplates");
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
-  port: Number(process.env.EMAIL_PORT || 587),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  // Prevent SMTP connections from hanging on Render / cloud hosts
-  connectionTimeout: 8000,   // 8 s to establish TCP connection
-  greetingTimeout: 8000,     // 8 s to receive SMTP greeting
-  socketTimeout: 15000,      // 15 s of inactivity before socket is killed
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendMail = async ({ to, subject, html }) => {
-  // Hard deadline — if nodemailer never rejects but also never resolves,
-  // this ensures we don't block the request indefinitely.
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Email send timed out after 12s')), 12000)
-  );
-  await Promise.race([
-    transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to,
-      subject,
-      html,
-    }),
-    timeout,
-  ]);
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not defined in environment variables");
+  }
+
+  // Resend onboarding domain requires from address to use onboarding@resend.dev
+  const fromAddress = 'Kailasa Retreats <onboarding@resend.dev>';
+
+  const { data, error } = await resend.emails.send({
+    from: fromAddress,
+    to,
+    subject,
+    html,
+  });
+
+  if (error) {
+    throw new Error(`Resend Error: ${error.message || JSON.stringify(error)}`);
+  }
+
+  return data;
 };
 
 // Send OTP verification email
@@ -75,7 +68,7 @@ module.exports.sendQueryEmail = async ({
 }) => {
   // Send to admin
   await sendMail({
-    to: process.env.ADMIN_EMAIL,
+    to: process.env.ADMIN_EMAIL || 'saikmohan1@gmail.com',
     subject: `New Query: ${subject}`,
     html: queryAdminTemplate({
       name,
