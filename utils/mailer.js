@@ -15,15 +15,27 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Prevent SMTP connections from hanging on Render / cloud hosts
+  connectionTimeout: 8000,   // 8 s to establish TCP connection
+  greetingTimeout: 8000,     // 8 s to receive SMTP greeting
+  socketTimeout: 15000,      // 15 s of inactivity before socket is killed
 });
 
 const sendMail = async ({ to, subject, html }) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to,
-    subject,
-    html,
-  });
+  // Hard deadline — if nodemailer never rejects but also never resolves,
+  // this ensures we don't block the request indefinitely.
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Email send timed out after 12s')), 12000)
+  );
+  await Promise.race([
+    transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to,
+      subject,
+      html,
+    }),
+    timeout,
+  ]);
 };
 
 // Send OTP verification email

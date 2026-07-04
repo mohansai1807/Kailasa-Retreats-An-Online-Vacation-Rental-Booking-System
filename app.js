@@ -79,7 +79,10 @@ passport.deserializeUser(User.deserializeUser());
 app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
-  res.locals.currUser = req.user;
+  
+  // Only expose current user if authenticated AND not pending login OTP verification
+  const isPendingLoginOtp = req.session && req.session.otpFlowType === 'login' && req.session.loginOtpVerified === false;
+  res.locals.currUser = isPendingLoginOtp ? null : req.user;
   next();
 });
 

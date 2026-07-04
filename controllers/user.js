@@ -42,15 +42,12 @@ module.exports.signup = async (req, res) => {
         req.session.otpFlowType = 'signup';
         await new Promise(resolve => req.session.save(resolve));
 
-        // Send OTP email (welcome email will fire after successful verification)
-        try {
-            await sendOtpEmail(email, otp);
-            req.flash('success', `Account created! A verification code has been sent to ${maskEmail(email)}.`);
-        } catch (mailErr) {
+        // Send OTP email in the background (non-blocking)
+        sendOtpEmail(email, otp).catch(mailErr => {
             console.error('Signup OTP email failed:', mailErr.message);
-            req.flash('error', 'Account created but we could not send the verification email. Please use Resend OTP.');
-        }
+        });
 
+        req.flash('success', `Account created! A verification code has been sent to ${maskEmail(email)}.`);
         res.redirect('/verify-otp');
     } catch (err) {
         req.flash('error', err.message);
@@ -135,20 +132,19 @@ module.exports.verifyOtp = async (req, res, next) => {
         user.otpExpiry = undefined;
         await user.save();
 
-        // Send welcome email ONLY during signup verification (not on every login)
+        // Send welcome or login success email in background (non-blocking)
         if (!isLoginFlow) {
-            try {
-                await sendWelcomeEmail(user.email, user.username);
-            } catch (mailErr) {
+            sendWelcomeEmail(user.email, user.username).catch(mailErr => {
                 console.error('Welcome email failed:', mailErr.message);
-            }
+            });
         } else {
-            // Send login success greeting email
-            try {
-                await sendLoginSuccessEmail(user.email, user.username);
-            } catch (mailErr) {
+            sendLoginSuccessEmail(user.email, user.username).catch(mailErr => {
                 console.error('Login success email failed:', mailErr.message);
-            }
+            });
+        }
+
+        if (isLoginFlow) {
+            req.session.loginOtpVerified = true;
         }
 
         // Auto-login the user
@@ -160,6 +156,7 @@ module.exports.verifyOtp = async (req, res, next) => {
             req.session.pendingUserId = null;
             req.session.redirectUrl = null;
             req.session.otpFlowType = null;
+            req.session.loginOtpVerified = null;
             const successMsg = isLoginFlow
                 ? `Welcome back, ${user.username}!`
                 : `Welcome to Kailasa Retreats, ${user.username}! Your email is verified.`;
@@ -195,14 +192,12 @@ module.exports.resendOtp = async (req, res) => {
         user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
 
-        try {
-            await sendOtpEmail(email, otp);
-            req.flash('success', `A new OTP has been sent to ${maskEmail(email)}`);
-        } catch (mailErr) {
+        // Send OTP email in the background (non-blocking)
+        sendOtpEmail(email, otp).catch(mailErr => {
             console.error('Resend OTP email failed — code:', mailErr.code, '| response:', mailErr.response, '| message:', mailErr.message);
-            req.flash('error', 'Failed to send OTP. Please try again.');
-        }
+        });
 
+        req.flash('success', `A new OTP has been sent to ${maskEmail(email)}`);
         res.redirect('/verify-otp');
     } catch (err) {
         req.flash('error', err.message);
@@ -234,7 +229,7 @@ module.exports.login = async (req, res, next) => {
             user.otp = hashedOtp;
             user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
             await user.save();
-            try { await sendOtpEmail(user.email, otp); } catch (e) { /* silent */ }
+            sendOtpEmail(user.email, otp).catch(e => console.error('Signup prompt OTP email failed:', e.message));
             return res.redirect('/verify-otp');
         }
 
@@ -250,6 +245,7 @@ module.exports.login = async (req, res, next) => {
         req.session.otpUsername = user.username;
         req.session.pendingUserId = user._id;
         req.session.otpFlowType = 'login';
+        req.session.loginOtpVerified = false;
         await new Promise((resolve, reject) => {
             req.session.save((err) => {
                 if (err) return reject(err);
@@ -257,15 +253,12 @@ module.exports.login = async (req, res, next) => {
             });
         });
 
-        try {
-            await sendOtpEmail(user.email, otp);
-            req.flash('success', `A login OTP has been sent to ${maskEmail(user.email)}`);
-        } catch (mailErr) {
+        // Send login OTP email in the background (non-blocking)
+        sendOtpEmail(user.email, otp).catch(mailErr => {
             console.error('Login OTP email failed — code:', mailErr.code, '| response:', mailErr.response, '| message:', mailErr.message);
-            req.flash('error', 'Failed to send login OTP. Please try again later.');
-            return res.redirect('/login');
-        }
+        });
 
+        req.flash('success', `A login OTP has been sent to ${maskEmail(user.email)}`);
         return res.redirect('/verify-otp');
     } catch (err) {
         return next(err);
