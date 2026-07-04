@@ -1,4 +1,4 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 const {
   otpTemplate,
   welcomeTemplate,
@@ -7,28 +7,26 @@ const {
   queryConfirmTemplate,
 } = require("./emailTemplates");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || "smtp.gmail.com",
+  port: Number(process.env.EMAIL_PORT || 587),
+  secure: Number(process.env.EMAIL_PORT || 587) === 465,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 
 const sendMail = async ({ to, subject, html }) => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is not defined in environment variables");
-  }
-
-  // Resend onboarding domain requires from address to use onboarding@resend.dev
-  const fromAddress = 'Kailasa Retreats <onboarding@resend.dev>';
-
-  const { data, error } = await resend.emails.send({
-    from: fromAddress,
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to,
     subject,
     html,
   });
-
-  if (error) {
-    throw new Error(`Resend Error: ${error.message || JSON.stringify(error)}`);
-  }
-
-  return data;
 };
 
 // Send OTP verification email

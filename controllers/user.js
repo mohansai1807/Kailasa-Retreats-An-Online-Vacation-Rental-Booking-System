@@ -19,38 +19,29 @@ module.exports.renderSignupForm = (req, res) => {
     res.render('users/signup.ejs');
 };
 
-module.exports.signup = async (req, res) => {
+module.exports.signup = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
-        const newUser = new User({ email, username, isVerified: false });
+        const newUser = new User({ email, username, isVerified: true });
         const regUser = await User.register(newUser, password);
 
-        // Generate OTP
-        const otp = generateOtp();
-        const hashedOtp = await bcrypt.hash(otp, 10);
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min from now
-
-        // Save OTP to user
-        regUser.otp = hashedOtp;
-        regUser.otpExpiry = otpExpiry;
-        await regUser.save();
-
-        console.log(`[OTP DEBUG] Generated Signup OTP for ${email}: ${otp}`);
-
-        // Store email, pending user ID and flow type in session for the verify page
-        req.session.otpEmail = email;
-        req.session.otpUsername = username;
-        req.session.pendingUserId = regUser._id;
-        req.session.otpFlowType = 'signup';
-        await new Promise(resolve => req.session.save(resolve));
-
-        // Send OTP email in the background (non-blocking)
-        sendOtpEmail(email, otp).catch(mailErr => {
-            console.error('Signup OTP email failed:', mailErr.message);
+        req.session.otpEmail = null;
+        req.session.otpUsername = null;
+        req.session.pendingUserId = null;
+        req.session.otpFlowType = null;
+        req.session.redirectUrl = null;
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) return reject(err);
+                resolve();
+            });
         });
 
-        req.flash('success', `Account created! A verification code has been sent to ${maskEmail(email)}.`);
-        res.redirect('/verify-otp');
+        req.login(regUser, (err) => {
+            if (err) return next(err);
+            req.flash('success', `${username} created account successfully.`);
+            return res.redirect('/listings');
+        });
     } catch (err) {
         req.flash('error', err.message);
         res.redirect('/signup');
