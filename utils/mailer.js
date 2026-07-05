@@ -7,17 +7,6 @@ const {
   queryConfirmTemplate,
 } = require("./emailTemplates");
 
-let resendClient = null;
-
-try {
-  const { Resend } = require("resend");
-  if (process.env.RESEND_API_KEY) {
-    resendClient = new Resend(process.env.RESEND_API_KEY);
-  }
-} catch (err) {
-  resendClient = null;
-}
-
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "smtp.gmail.com",
   port: Number(process.env.EMAIL_PORT || 587),
@@ -31,24 +20,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const fromAddress = process.env.EMAIL_FROM || process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+const fromAddress =
+  process.env.EMAIL_FROM ||
+  process.env.ADMIN_EMAIL ||
+  process.env.EMAIL_USER;
 
+// Common send mail function
 const sendMail = async ({ to, subject, html }) => {
-  if (resendClient && process.env.RESEND_API_KEY) {
-    const { data, error } = await resendClient.emails.send({
-      from: process.env.RESEND_FROM || "Kailasa Retreats <onboarding@resend.dev>",
-      to,
-      subject,
-      html,
-    });
-
-    if (error) {
-      throw new Error(error.message || "Resend email delivery failed");
-    }
-
-    return data;
-  }
-
   await transporter.sendMail({
     from: fromAddress,
     to,
@@ -84,7 +62,7 @@ module.exports.sendLoginSuccessEmail = async (to, username) => {
   });
 };
 
-// Send contact email
+// Send contact/query email
 module.exports.sendQueryEmail = async ({
   name,
   email,
@@ -92,9 +70,10 @@ module.exports.sendQueryEmail = async ({
   subject,
   message,
 }) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'saikmohan1@gmail.com';
+  const adminEmail =
+    process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
 
-  // Send to admin
+  // Send query to admin
   await sendMail({
     to: adminEmail,
     subject: `New Query: ${subject}`,
@@ -107,7 +86,7 @@ module.exports.sendQueryEmail = async ({
     }),
   });
 
-  // Auto reply to user
+  // Auto-reply to user
   await sendMail({
     to: email,
     subject: `We received your query — ${subject}`,
