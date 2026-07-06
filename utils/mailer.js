@@ -8,22 +8,27 @@ const {
 } = require("./emailTemplates");
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
-  port: Number(process.env.EMAIL_PORT || 465),
-  secure: Number(process.env.EMAIL_PORT || 465) === 465,
+  service: "gmail",
+  family: 4, // Force IPv4
 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+});
 
-  tls: {
-    rejectUnauthorized: false,
-  },
+// Verify SMTP connection when the server starts
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP Verification Failed");
+    console.error(error);
+  } else {
+    console.log("✅ Gmail SMTP Server is ready");
+  }
 });
 
 transporter.verify((err) => {
