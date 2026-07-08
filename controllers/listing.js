@@ -16,8 +16,13 @@ if (mapToken && (mapToken.startsWith("pk.") || mapToken.startsWith("sk."))) {
 
 module.exports.index = async (req, res, next) => {
   try {
-    const listings = await Listing.find({});
-    res.render('listings/index.ejs', { listings });
+    const category = req.query.category;
+    let filter = {};
+    if (category) {
+      filter.category = category;
+    }
+    const listings = await Listing.find(filter);
+    res.render('listings/index.ejs', { listings, category });
   } catch (err) {
     next(err);
   }
@@ -36,6 +41,28 @@ module.exports.show = async (req, res, next) => {
     if (!listing) {
       req.flash('error', 'Listing you requested does not exist please try again!');
       return res.redirect('/listings');
+    }
+
+    const isFallbackDelhi = listing.geometry && 
+                            listing.geometry.coordinates && 
+                            listing.geometry.coordinates[0] === 77.2090 && 
+                            listing.geometry.coordinates[1] === 28.6139;
+
+    if (!listing.geometry || !listing.geometry.coordinates || listing.geometry.coordinates.length === 0 || isFallbackDelhi) {
+      try {
+        if (geocodingClient) {
+          const response = await geocodingClient.forwardGeocode({
+            query: `${listing.location}, ${listing.country}`,
+            limit: 1
+          }).send();
+          if (response && response.body && response.body.features && response.body.features.length > 0) {
+            listing.geometry = response.body.features[0].geometry;
+            await listing.save();
+          }
+        }
+      } catch (geocodeErr) {
+        console.error("Geocoding failed during show:", geocodeErr);
+      }
     }
 
     console.log(listing);
@@ -105,7 +132,7 @@ module.exports.edit = async (req, res, next) => {
 module.exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, price, location, country } = req.body.listing;
+    const { title, description, price, location, country, category } = req.body.listing;
 
     let listing = await Listing.findById(id);
 
@@ -113,7 +140,7 @@ module.exports.update = async (req, res, next) => {
     if (listing.location !== location || !listing.geometry) {
       let response;
       try {
-        if (process.env.MAPBOX_TOKEN) {
+        if (geocodingClient) {
           response = await geocodingClient.forwardGeocode({
             query: location,
             limit: 1
@@ -136,6 +163,7 @@ module.exports.update = async (req, res, next) => {
     listing.price = price;
     listing.location = location;
     listing.country = country;
+    listing.category = category;
 
     // Update image only if a new one is uploaded
     if (req.file) {

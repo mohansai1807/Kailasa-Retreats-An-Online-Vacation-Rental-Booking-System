@@ -102,19 +102,44 @@
                     </div>
                 </div>
 
-                <!-- Country -->
-                <div class="mb-4">
-                    <label for="country" class="form-label">Country</label>
-                    <input
-                        type="text"
-                        name="listing[country]"
-                        id="country"
-                        class="form-control"
-                        placeholder="e.g. India"
-                        required
-                    >
-                    <div class="invalid-feedback">
-                        Please provide the country name.
+                <!-- Country and Category Row -->
+                <div class="row">
+                    <!-- Country -->
+                    <div class="col-12 col-md-6 mb-4">
+                        <label for="country" class="form-label">Country</label>
+                        <input
+                            type="text"
+                            name="listing[country]"
+                            id="country"
+                            class="form-control"
+                            placeholder="e.g. India"
+                            required
+                        >
+                        <div class="invalid-feedback">
+                            Please provide the country name.
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-12 col-md-6 mb-4">
+                        <label for="category" class="form-label">Category</label>
+                        <select name="listing[category]" id="category" class="form-select" required>
+                            <option value="" disabled selected>Select a category</option>
+                            <option value="Trending">Trending</option>
+                            <option value="Beachfront">Beachfront</option>
+                            <option value="Historic">Historic</option>
+                            <option value="Cabins">Cabins</option>
+                            <option value="Mountains">Mountains</option>
+                            <option value="Tropical">Tropical</option>
+                            <option value="Treehouses">Treehouses</option>
+                            <option value="Villas">Villas</option>
+                            <option value="Iconic Cities">Iconic Cities</option>
+                            <option value="Lakes">Lakes</option>
+                            <option value="Islands">Islands</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
                     </div>
                 </div>
 

@@ -46,6 +46,11 @@ const listingSchema = new Schema({
         trim: true,
     },
 
+    category: {
+        type: String,
+        enum: ["Trending", "Beachfront", "Historic", "Cabins", "Mountains", "Tropical", "Treehouses", "Villas", "Iconic Cities", "Lakes", "Islands"]
+    },
+
     geometry: {
         type: {
             type: String,

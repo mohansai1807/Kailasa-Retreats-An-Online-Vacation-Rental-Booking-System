@@ -85,13 +85,38 @@
                                 </small>
                             </div>
 
-                            <!-- Country -->
-                            <div class="mb-4">
-                                <label for="country" class="form-label">Country</label>
-                                <input type="text" name="listing[country]" id="country" value="<%= listing.country %>"
-                                    class="form-control" required>
-                                <div class="invalid-feedback">
-                                    Please enter a country.
+                            <!-- Country and Category Row -->
+                            <div class="row">
+                                <!-- Country -->
+                                <div class="col-12 col-md-6 mb-4">
+                                    <label for="country" class="form-label">Country</label>
+                                    <input type="text" name="listing[country]" id="country" value="<%= listing.country %>"
+                                        class="form-control" required>
+                                    <div class="invalid-feedback">
+                                        Please enter a country.
+                                    </div>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="col-12 col-md-6 mb-4">
+                                    <label for="category" class="form-label">Category</label>
+                                    <select name="listing[category]" id="category" class="form-select" required>
+                                        <option value="" disabled <%= !listing.category ? 'selected' : '' %>>Select a category</option>
+                                        <option value="Trending" <%= listing.category === 'Trending' ? 'selected' : '' %>>Trending</option>
+                                        <option value="Beachfront" <%= listing.category === 'Beachfront' ? 'selected' : '' %>>Beachfront</option>
+                                        <option value="Historic" <%= listing.category === 'Historic' ? 'selected' : '' %>>Historic</option>
+                                        <option value="Cabins" <%= listing.category === 'Cabins' ? 'selected' : '' %>>Cabins</option>
+                                        <option value="Mountains" <%= listing.category === 'Mountains' ? 'selected' : '' %>>Mountains</option>
+                                        <option value="Tropical" <%= listing.category === 'Tropical' ? 'selected' : '' %>>Tropical</option>
+                                        <option value="Treehouses" <%= listing.category === 'Treehouses' ? 'selected' : '' %>>Treehouses</option>
+                                        <option value="Villas" <%= listing.category === 'Villas' ? 'selected' : '' %>>Villas</option>
+                                        <option value="Iconic Cities" <%= listing.category === 'Iconic Cities' ? 'selected' : '' %>>Iconic Cities</option>
+                                        <option value="Lakes" <%= listing.category === 'Lakes' ? 'selected' : '' %>>Lakes</option>
+                                        <option value="Islands" <%= listing.category === 'Islands' ? 'selected' : '' %>>Islands</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select a category.
+                                    </div>
                                 </div>
                             </div>
 
