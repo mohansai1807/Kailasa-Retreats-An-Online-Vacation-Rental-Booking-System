@@ -10,20 +10,6 @@ module.exports.isLoggedIn = (req, res, next) => {
     return res.redirect('/login');
   }
 
-  // Block access if email is not yet verified
-  if (!req.user.isVerified) {
-    req.session.redirectUrl = req.originalUrl;
-    req.flash('error', 'Please verify your email before continuing.');
-    return res.redirect('/verify-otp');
-  }
-
-  // Block access if login OTP verification is pending
-  if (req.session.otpFlowType === 'login' && req.session.loginOtpVerified === false) {
-    req.session.redirectUrl = req.originalUrl;
-    req.flash('error', 'Please verify the login OTP before continuing.');
-    return res.redirect('/verify-otp');
-  }
-
   next();
 };
 

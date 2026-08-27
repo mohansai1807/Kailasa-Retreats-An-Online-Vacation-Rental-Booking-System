@@ -67,7 +67,7 @@ module.exports.renderLoginForm = (req, res) => {
 module.exports.login = async (req, res, next) => {
     try {
         const user = req.user;
-        const redirectUrl = req.session.redirectUrl || '/listings';
+        const redirectUrl = res.locals.redirectUrl || req.session.redirectUrl || '/listings';
 
         if (!user.isVerified) {
             user.isVerified = true;

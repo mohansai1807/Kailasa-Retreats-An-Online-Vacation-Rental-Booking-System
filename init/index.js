@@ -10,21 +10,42 @@ const Listing = require("../models/listing.js");
 
 
 
-async function main() {
-  await mongoose.connect(process.env.ATLAS_URI);
-  console.log("Connected to MongoDB Atlas");
-}
+const getCategoryForTitle = (title) => {
+    let t = title.toLowerCase();
+    if (t.includes("beach")) return "Beachfront";
+    if (t.includes("historic")) return "Historic";
+    if (t.includes("cabin") || t.includes("cottage")) return "Cabins";
+    if (t.includes("mountain") || t.includes("ski") || t.includes("chalet")) return "Mountains";
+    if (t.includes("tropical") || t.includes("safari") || t.includes("oasis")) return "Tropical";
+    if (t.includes("treehouse")) return "Treehouses";
+    if (t.includes("villa")) return "Villas";
+    if (t.includes("apartment") || t.includes("downtown") || t.includes("brownstone") || t.includes("penthouse") || t.includes("tokyo")) return "Iconic Cities";
+    if (t.includes("lake")) return "Lakes";
+    if (t.includes("island") || t.includes("maldives") || t.includes("bali") || t.includes("phuket")) return "Islands";
+    return "Beachfront";
+};
 
-main().then(() => {
-    console.log("Database connection successful");
-})
-.catch(err => console.error(err));
+const Review = require("../models/review.js");
+const User = require("../models/user.js");
 
+const SAMPLE_GUEST_DATA = [
+  { username: "Sarah_M", email: "sarah.m@example.com" },
+  { username: "Alex_J", email: "alex.j@example.com" },
+  { username: "Emily_R", email: "emily.r@example.com" },
+  { username: "David_K", email: "david.k@example.com" },
+  { username: "Priya_S", email: "priya.s@example.com" },
+  { username: "Marcus_B", email: "marcus.b@example.com" }
+];
 
-
-
-
-
+const SAMPLE_REVIEWS = [
+  { content: "Amazing place — would definitely stay here again!", rating: 5 },
+  { content: "Very comfortable and clean. Great location with peaceful surroundings.", rating: 5 },
+  { content: "Host was extremely responsive and helpful throughout our stay.", rating: 4 },
+  { content: "Nice amenities, cozy atmosphere, and wonderful views.", rating: 5 },
+  { content: "Good value for money. Clean, tidy, and highly recommended!", rating: 4 },
+  { content: "Super clean, easy check-in, and great neighborhood.", rating: 5 },
+  { content: "Loved every bit of our stay! Everything was spotless and well managed.", rating: 5 }
+];
 
 const cityCoords = {
     "Malibu": [-118.8050, 34.0259],
@@ -59,11 +80,24 @@ const cityCoords = {
 };
 
 const initdb = async () => {
+    const guestUsers = [];
+    for (let guestData of SAMPLE_GUEST_DATA) {
+        let user = await User.findOne({ username: guestData.username });
+        if (!user) {
+            user = new User({ email: guestData.email, username: guestData.username, isVerified: true });
+            user = await User.register(user, "Password123!");
+        }
+        guestUsers.push(user);
+    }
+
+    const defaultOwner = guestUsers[0]._id;
+
     const data = initdata.data.map((obj) => {
         const coords = cityCoords[obj.location] || [77.2090, 28.6139];
         return {
             ...obj,
-            owner: "6a45e368e6c8618325cad244",
+            category: getCategoryForTitle(obj.title),
+            owner: defaultOwner,
             geometry: {
                 type: "Point",
                 coordinates: coords
@@ -71,10 +105,37 @@ const initdb = async () => {
         };
     });
     await Listing.deleteMany({});
-    await Listing.insertMany(data);
-    console.log("Data was initialized successfully");
+    await Review.deleteMany({});
+    
+    const createdListings = await Listing.insertMany(data);
+    
+    for (let listing of createdListings) {
+        listing.reviews = [];
+        const reviewCount = Math.floor(Math.random() * 2) + 3;
+        for (let i = 0; i < reviewCount; i++) {
+            const reviewSample = SAMPLE_REVIEWS[Math.floor(Math.random() * SAMPLE_REVIEWS.length)];
+            const randomGuest = guestUsers[i % guestUsers.length];
+
+            const review = new Review({
+                content: reviewSample.content,
+                rating: reviewSample.rating,
+                author: randomGuest._id
+            });
+            await review.save();
+            listing.reviews.push(review._id);
+        }
+        await listing.save();
+    }
+    console.log("Data & default guest reviews were initialized successfully");
+};
+
+async function main() {
+  await mongoose.connect(process.env.ATLAS_URI);
+  console.log("Connected to MongoDB Atlas");
+  await initdb();
+  await mongoose.connection.close();
 }
 
-initdb();
+main().catch(err => console.error(err));
 
 
