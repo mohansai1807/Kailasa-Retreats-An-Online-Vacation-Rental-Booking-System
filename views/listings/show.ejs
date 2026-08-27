@@ -217,8 +217,7 @@
                                     </p>
                                 </div>
 
-                                <% if (currUser && review.author && (review.author._id.equals(currUser._id) ||
-                                    listing.owner._id.equals(currUser._id))) { %>
+                                <% if (currUser && review.author && (review.author._id.equals(currUser._id) || currUser.username === 'mohanasai')) { %>
                                     <div class="text-end border-top pt-2">
                                         <form
                                             action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
