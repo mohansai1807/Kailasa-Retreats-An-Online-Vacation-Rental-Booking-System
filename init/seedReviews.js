@@ -41,7 +41,7 @@ async function seedReviews() {
     guestUsers.push(user);
   }
 
-  await Review.deleteMany({});
+  // await Review.deleteMany({});
 
   const listings = await Listing.find({});
 
