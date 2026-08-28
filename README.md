@@ -286,8 +286,8 @@ Full-Stack Developer
 
 ### Connect
 
-* GitHub: Add your GitHub profile
-* LinkedIn: Add your LinkedIn profile
+* GitHub:https://github.com/mohansai1807
+* LinkedIn: www.linkedin.com/in/mohanasai-kadirimangalam-a846612b3
 
 ## License
 
